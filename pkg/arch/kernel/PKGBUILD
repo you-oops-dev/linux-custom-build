@@ -1,0 +1,424 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+#Custom's
+#Any value means "YES" or nothing i.e. empty variable means "NO"
+export _build_obs=
+export _localmodcfg=
+export _docs=
+export _patch=y
+export _fix_build_distcc=y
+
+export _kernel_compiler_patch_version=20250818.2
+export _patch_file=more-ISA-levels-and-uarches-for-kernel-6.16+.patch
+
+#Config select menu
+export _black_config_menu_kernel=
+export _blue_config_menu_kernel=
+
+#Kernel config
+export _config_name=config-custom
+
+if [[ -n "$_patch" ]]; then
+    # Optionally select a sub architecture by number or leave blank which will
+    # require user interaction during the build. Note that the generic (default)
+    # option is 36.
+#  1. Generic-x86-64 (GENERIC_CPU) (NEW)
+#  2. AMD Opteron/Athlon64/Hammer/K8 (MK8) (NEW)
+#  3. AMD Opteron/Athlon64/Hammer/K8 with SSE3 (MK8SSE3) (NEW)
+#  4. AMD 61xx/7x50/PhenomX3/X4/II/K10 (MK10) (NEW)
+#  5. AMD Barcelona (MBARCELONA) (NEW)
+#  6. AMD Bobcat (MBOBCAT) (NEW)
+#  7. AMD Jaguar (MJAGUAR) (NEW)
+#  8. AMD Bulldozer (MBULLDOZER) (NEW)
+#  9. AMD Piledriver (MPILEDRIVER) (NEW)
+#  10. AMD Steamroller (MSTEAMROLLER) (NEW)
+#  11. AMD Excavator (MEXCAVATOR) (NEW)
+#  12. AMD Ryzen (MZEN) (NEW)
+#  13. AMD Ryzen 2 (MZEN2) (NEW)
+#  14. AMD Ryzen 3 (MZEN3) (NEW)
+#  15. AMD Ryzen 4 (MZEN4) (NEW)
+#  16. AMD Ryzen 5 (MZEN5) (NEW)
+#  17. Intel P4 / older Netburst based Xeon (MPSC) (NEW)
+#  18. Intel Core 2 (MCORE2) (NEW)
+#  19. Intel Nehalem (MNEHALEM) (NEW)
+#  20. Intel Westmere (MWESTMERE) (NEW)
+#  21. Intel Silvermont (MSILVERMONT) (NEW)
+#  22. Intel Goldmont (MGOLDMONT) (NEW)
+#  23. Intel Goldmont Plus (MGOLDMONTPLUS) (NEW)
+#  24. Intel Sandy Bridge (MSANDYBRIDGE) (NEW)
+#  25. Intel Ivy Bridge (MIVYBRIDGE) (NEW)
+#  26. Intel Haswell (MHASWELL) (NEW)
+#  27. Intel Broadwell (MBROADWELL) (NEW)
+#  28. Intel Skylake (MSKYLAKE) (NEW)
+#  29. Intel Skylake-X (7th Gen Core i7/i9) (MSKYLAKEX) (NEW)
+#  30. Intel Coffee Lake/Kaby Lake Refresh (8th Gen Core i3/i5/i7) (MCANNONLAKE) (NEW)
+#  31. Intel Ice Lake (MICELAKE_CLIENT) (NEW)
+#  32. Intel Ice Lake-SP (3rd Gen Xeon Scalable) (MICELAKE_SERVER) (NEW)
+#  33. Intel Cooper Lake (MCOOPERLAKE) (NEW)
+#  34. Intel Cascade Lake (MCASCADELAKE) (NEW)
+#  35. Intel Tiger Lake (MTIGERLAKE) (NEW)
+#  36. Intel Sapphire Rapids (MSAPPHIRERAPIDS) (NEW)
+#  37. Intel Rocket Lake (MROCKETLAKE) (NEW)
+#  38. Intel Alder Lake (MALDERLAKE) (NEW)
+#  39. Intel Raptor Lake (MRAPTORLAKE) (NEW)
+#  40. Intel Meteor Lake (MMETEORLAKE) (NEW)
+#  41. Intel Emerald Rapids (MEMERALDRAPIDS) (NEW)
+#  42. Intel Diamond Rapids (7th Gen Xeon Scalable) (MDIAMONDRAPIDS) (NEW)
+    export _subarch=MSKYLAKE
+    export _subarch_microarch=1
+fi
+
+if [[ -n "$_build_obs" ]]; then
+export pkgbase="linux-official-custom"
+export _suffix=""
+else
+export pkgbase="linux-official-custom"
+fi
+
+export _pkgbase=linux
+
+pkgver=6.16.3
+pkgrel=1
+pkgdesc='Linux'
+_release=v${pkgver}-arch1
+url="https://github.com/archlinux/linux/releases/tag/${_release}"
+arch=(x86_64)
+license=(GPL2)
+makedepends=(bc cpio gettext libelf pahole perl tar xz python rust rust-bindgen graphviz imagemagick python-sphinx texlive-latexextra)
+options=("!strip" "!debug" "!lto")
+_srcname=archlinux-linux
+source=(
+    "archlinux-linux.tar.gz::https://github.com/archlinux/linux/archive/refs/tags/v${pkgver}-arch1.tar.gz"
+    "config-arch::https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/raw/main/config"
+    "more-uarches-${_kernel_compiler_patch_version}.tar.gz::https://github.com/graysky2/kernel_compiler_patch/archive/${_kernel_compiler_patch_version}.tar.gz"
+)
+validpgpkeys=(
+    ABAF11C65A2970B130ABE3C479BE3E4300411886
+    647F28654894E3BD457199BE38DBBDC86092693E
+    A2FF3A36AAA56654109064AB19802F8B0D70FC30
+    C7E7849466FE2358343588377258734B41C31549)
+
+b2sums=("bf15ed1a7d2528730c2891f8c8b0ebfb90b1a3daece1a91fa62b92f50ffc048d05b16abbc9198b43a6a35b663a9d96f7583a0bf404e9236b8d4149cb9bad5bbf"
+        "SKIP"
+        "58b007e983845716a777b81ca459cbb075f8618654eacbff0690581057632eda494a0238034d9f3e84d504a4a223cb6d895074f0acdfe050a5f9b36a9d981c6d")
+
+export KBUILD_BUILD_HOST=archlinux
+export KBUILD_BUILD_USER=$pkgbase
+export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
+
+_make() {
+    test -s version
+    make KERNELRELEASE="$(<version)" "$@"
+}
+
+build() {
+    cd $srcdir/$_pkgbase-$pkgver-arch1
+
+    echo "Setting version..."
+    echo "-$pkgrel" > localversion.10-pkgrel
+    echo "${pkgbase#linux}" > localversion.20-pkgname
+    make defconfig
+    make -s kernelrelease > version
+    make mrproper
+
+    local src
+    for src in "${source[@]}"; do
+        src="${src%%::*}"
+        src="${src##*/}"
+        [[ $src = *.patch ]] || continue
+        echo "Applying patch $src..."
+        patch -Np1 < "../$src"
+    done
+
+    # remove the -archx suffix
+    sed -i s'/^EXTRAVERSION =.*/EXTRAVERSION =/' Makefile
+
+    echo "Setting config..."
+    if [[ -n "$_config_name" ]]; then
+    cp -fv ../../${_config_name} .config
+	else
+    cp -fv ../../config-arch .config
+    fi
+
+  # Recommends 1000 Hz tick and the hrtimer patches in lieu
+  scripts/config --enable CONFIG_HZ_1000
+    if [[ -n "$_patch" ]]; then
+        #Patch's kernel section
+        echo -e "\e[1;33mPatching Kernel...\033[0m"
+        echo -e "\e[1;33mPatching to enable GCC optimization for other uarchs...\033[0m"
+        patch -Np1 -i "$srcdir/kernel_compiler_patch-$_kernel_compiler_patch_version/$_patch_file"
+
+        if [[ -n "$_subarch" ]]; then
+    case ${_subarch} in
+        "")
+            # Ask for subarch if none provided
+            make "${BUILD_FLAGS[@]}" oldconfig
+            ;;
+        "41" | "GENERIC_CPU")
+            scripts/config -e GENERIC_CPU
+            scripts/config --set-val X86_64_VERSION "${_subarch_microarch}"
+            make "${BUILD_FLAGS[@]}" oldconfig
+            ;;
+        [1-9]|[1-3][0-9]|[4][0-3]|43)
+            # 1 to 9, 10 to 39, 40 to 43
+            # 43 is the last supported value here, refer to the _subarch
+            # documentation above and keep the last section of this check
+            # in sync with the supported value.
+            # stderr checks below shouldn't be needed with the above check in place,
+            # but will be left in-place regardless in case of future updates
+            # breaking something
+
+            # We're only interested in stderr
+            {
+                local __ERROR=$(echo "${_subarch}" | make "${BUILD_FLAGS[@]}" oldconfig 2>&1 1>&$out)
+            } {out}>/dev/null
+
+            # Invoke echo to sanitize the __ERROR, it can contain a newline or a \r
+            # symbol, thus breaking the script
+            if [ -n "$(echo $__ERROR)" ]; then
+                warning "Selected subarch: ${_subarch} is not supported"
+                exit
+            fi
+            ;;
+        *)
+            # String - check if it exists in .config and if it does - set it
+            if grep -q -e "CONFIG_${_subarch}[[:space:]]" -e "CONFIG_${_subarch}=" .config; then
+                # Check if option exists in .config
+                scripts/config -e "${_subarch}"
+                make "${BUILD_FLAGS[@]}" olddefconfig
+            else
+                warning "Unrecognized subarch value: ${_subarch}"
+                exit
+            fi
+            ;;
+    esac
+        else
+            # no subarch defined so allow user to pick one
+            make oldconfig
+        fi
+    fi
+
+    ### Optionally load needed modules for the make localmodconfig
+    # See https://aur.archlinux.org/packages/modprobed-db
+    if [ -n "$_localmodcfg" ]; then
+        if [ -f $HOME/.config/modprobed.db ]; then
+            echo -e "\e[1;33mRunning Steven Rostedt's make localmodconfig now\033[0m"
+            make LSMOD=$HOME/.config/modprobed.db localmodconfig
+        else
+            echo -e "\e[1;33mNo modprobed.db data found!\033[0m"
+        fi
+    fi
+
+    if [[ -n "$_fix_build_distcc" ]]; then
+        echo -e "\e[1;33mBuild with distcc...Fix\033[0m"
+        sed -i '/HAVE_GCC_PLUGINS/d' arch/x86/Kconfig
+        scripts/config -e HAVE_GCC_PLUGIN
+    fi
+    if [[ -n "$_black_config_menu_kernel" ]]; then
+        make nconfig
+    else
+        if [[ -n "$_blue_config_menu_kernel" ]]; then
+            make menuconfig
+        fi
+    fi
+
+    _make olddefconfig
+    echo "Prepared $pkgbase version $(<version)"
+
+    __nthreads=$(($(nproc) + 1))
+
+    scripts/config -e CONFIG_HZ_1000
+
+if [[ -n "$_fix_build_distcc" ]]; then
+    scripts/config -e HAVE_GCC_PLUGIN
+fi
+if [[ -n "$_patch" ]]; then
+    scripts/config --set-val X86_64_VERSION "${_subarch_microarch}"
+fi
+    cp -fv ./.config ../../${_config_name}
+
+    _make -j${__nthreads} all
+
+    if [[ -n "$_docs" ]]; then
+        _make -j${__nthreads} htmldocs
+    fi
+}
+
+_package() {
+    pkgdesc="The $pkgdesc kernel and modules"
+    depends=(
+        coreutils
+        initramfs
+        kmod
+    )
+    optdepends=(
+        'wireless-regdb: to set the correct wireless channels of your country'
+        'linux-firmware: firmware images needed for some devices'
+        'scx-scheds: to use sched-ext schedulers'
+        'v4l2loopback-utils: v4l2-loopback device utilities'
+    )
+    provides=(
+        KSMBD-MODULE
+        VIRTUALBOX-GUEST-MODULES
+        WIREGUARD-MODULE
+    )
+    replaces=(
+        virtualbox-guest-modules-arch
+        wireguard-arch
+    )
+
+    cd $srcdir/$_pkgbase-$pkgver-arch1
+    local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
+
+    echo "Installing boot image..."
+    # systemd expects to find the kernel here to allow hibernation
+    # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+    install -Dm644 "$(_make -s image_name)" "$modulesdir/vmlinuz"
+
+    # Used by mkinitcpio to name the kernel
+    echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
+
+    echo "Installing modules..."
+    _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+        DEPMOD=/doesnt/exist modules_install  # Suppress depmod
+
+    # remove build and source links
+    rm "$modulesdir"/build
+}
+
+_package-headers() {
+    pkgdesc="Headers and scripts for building modules for the $pkgdesc kernel"
+    depends=(pahole)
+
+    cd $srcdir/$_pkgbase-$pkgver-arch1
+    local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
+
+    echo "Installing build files..."
+    install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
+        localversion.* version vmlinux
+    install -Dt "$builddir/kernel" -m644 kernel/Makefile
+    install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
+    cp -t "$builddir" -a scripts
+
+    # required when STACK_VALIDATION is enabled
+    install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+
+    # required when DEBUG_INFO_BTF_MODULES is enabled
+    install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+
+    echo "Installing headers..."
+    cp -t "$builddir" -a include
+    cp -t "$builddir/arch/x86" -a arch/x86/include
+    install -Dt "$builddir/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+
+    install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
+    install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
+
+    # https://bugs.archlinux.org/task/13146
+    install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+    # https://bugs.archlinux.org/task/20402
+    install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+    install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+    install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+    # https://bugs.archlinux.org/task/71392
+    install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+    echo "Installing KConfig files..."
+    find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+
+    echo "Removing unneeded architectures..."
+    local arch
+    for arch in "$builddir"/arch/*/; do
+        [[ $arch = */x86/ ]] && continue
+        echo "Removing $(basename "$arch")"
+        rm -r "$arch"
+    done
+
+    echo "Removing documentation..."
+    rm -r "$builddir/Documentation"
+
+    echo "Removing broken symlinks..."
+    find -L "$builddir" -type l -printf 'Removing %P\n' -delete
+
+    echo "Removing loose objects..."
+    find "$builddir" -type f -name '*.o' -printf 'Removing %P\n' -delete
+
+    echo "Stripping build tools..."
+    local file
+    while read -rd '' file; do
+        case "$(file -Sib "$file")" in
+            application/x-sharedlib\;*)      # Libraries (.so)
+                strip -v $STRIP_SHARED "$file" ;;
+            application/x-archive\;*)        # Libraries (.a)
+                strip -v $STRIP_STATIC "$file" ;;
+            application/x-executable\;*)     # Binaries
+                strip -v $STRIP_BINARIES "$file" ;;
+            application/x-pie-executable\;*) # Relocatable binaries
+                strip -v $STRIP_SHARED "$file" ;;
+        esac
+    done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+    echo "Stripping vmlinux..."
+    strip -v $STRIP_STATIC "$builddir/vmlinux"
+
+    echo "Adding symlink..."
+    mkdir -p "$pkgdir/usr/src"
+    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
+}
+
+_package-docs() {
+    pkgdesc="Documentation for the $pkgdesc kernel"
+
+    cd $srcdir/$_pkgbase-$pkgver-arch1
+    local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
+
+    echo "Installing documentation..."
+    local src dst
+    while read -rd '' src; do
+        dst="${src#Documentation/}"
+        dst="$builddir/Documentation/${dst#output/}"
+        install -Dm644 "$src" "$dst"
+    done < <(find Documentation -name '.*' -prune -o ! -type d -print0)
+
+    echo "Adding symlink..."
+    mkdir -p "$pkgdir/usr/share/doc"
+    ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
+}
+
+if [[ -n "$_docs" ]]; then
+    pkgname=(
+        "$pkgbase"
+        "$pkgbase-headers"
+        "$pkgbase-docs"
+    )
+else
+    pkgname=(
+        "$pkgbase"
+        "$pkgbase-headers"
+    )
+fi
+
+if [[ -n "$_build_obs" ]]; then
+for _p in ${pkgname[@]}; do
+    if [[ -n ${_suffix} ]]; then
+        _i=$(echo ${_p} | sed "s/${_suffix}//g")
+    else
+        _i=${_p}
+    fi
+    eval "package_${_i}${_suffix}() {
+        $(declare -f "_package${_i#${pkgbase}}")
+        _package${_i#${pkgbase}}
+    }"
+done
+else
+for _p in "${pkgname[@]}"; do
+    eval "package_$_p() {
+    $(declare -f "_package${_p#$pkgbase}")
+    _package${_p#$pkgbase}
+    }"
+done
+fi
+
+# vim:set ts=8 sts=2 sw=2 et:
