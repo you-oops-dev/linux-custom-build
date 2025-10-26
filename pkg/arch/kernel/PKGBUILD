@@ -1,5 +1,9 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
+b2sums=('afbeb5c3c8b47f30d62a4bae4937bd4a8d506b2bd0e94ef6d281d0b25f3e24f15c4a89d15240c619a878b5058ed6d7517b5951ba6addf37b2ad442e61b2930da'
+        'SKIP' #config arch kernel
+        '58b007e983845716a777b81ca459cbb075f8618654eacbff0690581057632eda494a0238034d9f3e84d504a4a223cb6d895074f0acdfe050a5f9b36a9d981c6d')
+
 #Custom's
 #Any value means "YES" or nothing i.e. empty variable means "NO"
 export _build_obs=
@@ -77,7 +81,7 @@ fi
 
 export _pkgbase=linux
 
-pkgver=6.16.3
+pkgver=6.16.10
 pkgrel=1
 pkgdesc='Linux'
 _release=v${pkgver}-arch1
@@ -97,10 +101,6 @@ validpgpkeys=(
     647F28654894E3BD457199BE38DBBDC86092693E
     A2FF3A36AAA56654109064AB19802F8B0D70FC30
     C7E7849466FE2358343588377258734B41C31549)
-
-b2sums=("bf15ed1a7d2528730c2891f8c8b0ebfb90b1a3daece1a91fa62b92f50ffc048d05b16abbc9198b43a6a35b663a9d96f7583a0bf404e9236b8d4149cb9bad5bbf"
-        "SKIP"
-        "58b007e983845716a777b81ca459cbb075f8618654eacbff0690581057632eda494a0238034d9f3e84d504a4a223cb6d895074f0acdfe050a5f9b36a9d981c6d")
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
